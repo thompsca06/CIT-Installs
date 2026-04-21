@@ -1,0 +1,51 @@
+function Invoke-Download {
+    param (
+        [string]$Uri,
+        [string]$OutFile
+    )
+    Write-Log "Downloading: $Uri"
+    try {
+        Invoke-WebRequest -Uri $Uri -OutFile $OutFile -UseBasicParsing
+    } catch {
+        throw "Failed to download $Uri — $_"
+    }
+}
+
+function Install-MSI {
+    param (
+        [string]$Path,
+        [string]$AdditionalArgs = ""
+    )
+    $args = "/i `"$Path`" /qn /norestart $AdditionalArgs".Trim()
+    Write-Log "Running MSI installer: $Path"
+    $result = Start-Process msiexec.exe -ArgumentList $args -Wait -PassThru
+    if ($result.ExitCode -notin @(0, 3010)) {
+        throw "MSI install failed with exit code $($result.ExitCode)"
+    }
+}
+
+function Install-EXE {
+    param (
+        [string]$Path,
+        [string]$Arguments
+    )
+    Write-Log "Running EXE installer: $Path"
+    $result = Start-Process -FilePath $Path -ArgumentList $Arguments -Wait -PassThru
+    if ($result.ExitCode -notin @(0, 3010)) {
+        throw "EXE install failed with exit code $($result.ExitCode)"
+    }
+}
+
+function Test-RegistryInstall {
+    param ([string]$DisplayName)
+    $paths = @(
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    foreach ($path in $paths) {
+        if (Get-ItemProperty $path -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "*$DisplayName*" }) {
+            return $true
+        }
+    }
+    return $false
+}
