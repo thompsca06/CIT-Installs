@@ -6,10 +6,10 @@ if (Test-RegistryInstall -DisplayName "7-Zip") {
 }
 
 Write-Log "Resolving latest 7-Zip version..."
-$downloadPage = Invoke-WebRequest -Uri "https://www.7-zip.org/download.html" -UseBasicParsing
-$msiPath = ($downloadPage.Links.href | Where-Object { $_ -match "7z\d+-x64\.msi$" } | Select-Object -First 1)
-if (-not $msiPath) { throw "Could not find 7-Zip MSI download link on 7-zip.org" }
-$uri = "https://www.7-zip.org/$msiPath"
+$release = Invoke-RestMethod -Uri "https://api.github.com/repos/ip7z/7zip/releases/latest" -UseBasicParsing
+$asset = $release.assets | Where-Object { $_.name -match "7z\d+-x64\.msi$" } | Select-Object -First 1
+if (-not $asset) { throw "Could not find 7-Zip x64 MSI in latest GitHub release" }
+$uri = $asset.browser_download_url
 Write-Log "Found 7-Zip installer: $uri"
 
 $installer = "$env:TEMP\7zip.msi"
