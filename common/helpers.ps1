@@ -16,9 +16,9 @@ function Install-MSI {
         [string]$Path,
         [string]$AdditionalArgs = ""
     )
-    $args = "/i `"$Path`" /qn /norestart $AdditionalArgs".Trim()
+    $msiArgs = "/i `"$Path`" /qn /norestart $AdditionalArgs".Trim()
     Write-Log "Running MSI installer: $Path"
-    $result = Start-Process msiexec.exe -ArgumentList $args -Wait -PassThru
+    $result = Start-Process msiexec.exe -ArgumentList $msiArgs -Wait -PassThru
     if ($result.ExitCode -notin @(0, 3010)) {
         throw "MSI install failed with exit code $($result.ExitCode)"
     }
