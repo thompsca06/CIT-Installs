@@ -36,16 +36,17 @@ function Install-EXE {
     }
 }
 
-function Test-RegistryInstall {
+function Get-InstalledVersion {
     param ([string]$DisplayName)
-    $paths = @(
+    $regPaths = @(
         "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
         "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
     )
-    foreach ($path in $paths) {
-        if (Get-ItemProperty $path -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "*$DisplayName*" }) {
-            return $true
-        }
+    foreach ($path in $regPaths) {
+        $entry = Get-ItemProperty $path -ErrorAction SilentlyContinue |
+                 Where-Object { $_.DisplayName -like "*$DisplayName*" } |
+                 Select-Object -First 1
+        if ($entry) { return $entry.DisplayVersion }
     }
-    return $false
+    return $null
 }
