@@ -7,7 +7,7 @@ function Invoke-Download {
     try {
         Invoke-WebRequest -Uri $Uri -OutFile $OutFile -UseBasicParsing
     } catch {
-        throw "Failed to download $Uri — $_"
+        throw "Failed to download $Uri - $_"
     }
 }
 
