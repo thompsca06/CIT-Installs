@@ -35,8 +35,18 @@ Write-Log "Starting image build"
 
 foreach ($app in $AppsToInstall) {
     Write-Log "Installing: $app"
-    $scriptPath = Get-RepoFile "apps/$app/install.ps1"
-    & $scriptPath
+    try {
+        $scriptPath = Get-RepoFile "apps/$app/install.ps1"
+        & $scriptPath
+    } catch {
+        Write-Log "FAILED installing $app" -Level ERROR
+        Write-Log "Exception  : $($_.Exception.Message)" -Level ERROR
+        Write-Log "Script     : $($_.InvocationInfo.ScriptName)" -Level ERROR
+        Write-Log "Line $($_.InvocationInfo.ScriptLineNumber): $($_.InvocationInfo.Line.Trim())" -Level ERROR
+        Write-Log "Stack trace: $($_.ScriptStackTrace)" -Level ERROR
+        Stop-Transcript
+        throw
+    }
 }
 
 Write-Log "Image build completed successfully"
